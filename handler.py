@@ -1,8 +1,11 @@
 import pandas as pd
 import pickle 
 from flask import Flask, request
+
+from wine_quality import WineQuality
+
 # load model
-model = pickle.load( open('/Users/santo/repos/Deploy/model_wine_quality.pkl', 'rb') )
+model = pickle.load( open('/Users/santo/repos/Wine-Quality/deploy/model_wine_quality.pkl', 'rb') )
 
 # instanciate flask
 app = Flask( __name__ )
@@ -18,12 +21,19 @@ def predict():
         else:
             df_raw = pd.DataFrame( test_json, columns=test_json[0].keys() )
             
+    # isinstanciate data preparation
+    pipeline = WineQuality()
+    
+    # data preparation
+    df1 = pipeline.data_preparation( df_raw )
+            
     # prediction
-    pred = model.predict( df_raw )
+    pred = model.predict( df1 )
     
-    df_raw['prediction'] = pred
+    # response
+    df1['prediction'] = pred
     
-    return df_raw.to_json( orient='records' )
+    return df1.to_json( orient='records' )
 
 if __name__ == '__main__':
     # start flask
